@@ -144,7 +144,7 @@ class Client:
         """
         if not source_credentials:
             logging.debug("No source credentials passed, using default credentials.")
-            source_credentials = default()
+            source_credentials, project_id = default()
         src_principal = "UNK"
         try:
             src_principal = source_credentials._service_account_email
