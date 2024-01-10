@@ -2,8 +2,9 @@ import logging
 
 import google.auth.transport.requests
 from google.api_core import exceptions as google_exceptions
+from google.auth import default
+from google.auth import impersonated_credentials
 from google.cloud import iam_credentials
-from google.oauth2 import credentials
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -98,7 +99,11 @@ class Client:
         return resp.access_token
 
     def get_credentials(
-        self, target_acct, scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        self,
+        target_acct,
+        scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        source_credentials=None,
+        lifetime=3600,
     ):
         """
         Generates a credentials object for a target service account which may be used
@@ -126,11 +131,37 @@ class Client:
             to ``["https://www.googleapis.com/auth/cloud-platform"]`` which
             should be sufficient for most uses cases.
 
+        :type source_credentials: ``google.oauth2.credentials.Credentials``
+        :param source_credentials: The credentials of the source account attempting
+            to impersonate the target account. If not supplied, default() is used.
+
+        :type lifetime: :py:class:`int`
+        :param lifetime: For how long the credentials should be valid, in seconds.
+
         :rtype: ``google.oauth2.credentials.Credentials``
         :returns: a credentials object with can be used for authentication
             with Google APIs.
         """
-        access_token = self.get_access_token(acct=target_acct, scopes=scopes)
+        if not source_credentials:
+            logging.debug("No source credentials passed, using default credentials.")
+            source_credentials = default()
+        src_principal = "UNK"
+        try:
+            src_principal = source_credentials._service_account_email
+        except AttributeError:
+            try:
+                src_principal = source_credentials._client_id
+            except AttributeError:
+                pass
 
-        _LOGGER.info("Generating and returning credentials object.")
-        return credentials.Credentials(token=access_token)
+        _LOGGER.info(
+            f"Generating and returning credentials object for [{src_principal}] "
+            f"to impersonate [{target_acct}] for [{lifetime}] seconds "
+            f"with scopes {scopes}"
+        )
+        return impersonated_credentials.Credentials(
+            source_credentials=source_credentials,
+            target_principal=target_acct,
+            target_scopes=scopes,
+            lifetime=lifetime,
+        )
