@@ -1,5 +1,6 @@
 import logging
 
+import google.auth.transport.requests
 from google.api_core import exceptions as google_exceptions
 from google.cloud import iam_credentials
 from google.oauth2 import credentials
@@ -19,6 +20,12 @@ class Client:
 
     def __init__(self, credentials=None):
         self._client = iam_credentials.IAMCredentialsClient(credentials=credentials)
+
+    def _ensure_valid_client(self):
+        if not self._client._transport._credentials.valid:
+            request = google.auth.transport.requests.Request()
+            self._client._transport._credentials.refresh(request=request)
+        return
 
     def get_access_token(
         self, target_acct, scopes=["https://www.googleapis.com/auth/cloud-platform"]
@@ -57,6 +64,7 @@ class Client:
         _LOGGER.info(
             f"Getting access token for account: [{target_acct}] with scope: [{scopes}]"
         )
+        self._ensure_valid_client()
         try:
             resp = self._client.generate_access_token(
                 name=target_acct,
