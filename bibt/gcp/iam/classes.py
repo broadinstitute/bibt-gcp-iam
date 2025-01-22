@@ -29,18 +29,18 @@ class Client:
             try:
                 credentials = self._client._transport._credentials
             except AttributeError:
-                logging.error("Could not verify credentials in client.")
+                _LOGGER.error("Could not verify credentials in client.")
                 return
         if not credentials.valid or not credentials.expiry:
-            logging.info(
+            _LOGGER.info(
                 "Refreshing client credentials, token expired: "
                 f"[{str(credentials.expiry)}]"
             )
             request = google.auth.transport.requests.Request()
             credentials.refresh(request=request)
-            logging.info(f"New expiration: [{str(credentials.expiry)}]")
+            _LOGGER.info(f"New expiration: [{str(credentials.expiry)}]")
         else:
-            logging.debug(
+            _LOGGER.debug(
                 f"Token is valid: [{credentials.valid}] "
                 f"expires: [{str(credentials.expiry)}]"
             )
@@ -79,7 +79,7 @@ class Client:
         :returns: an access token with can be used to generate credentials
             for Google APIs.
         """
-        # Create credentials for Logging API at the org level
+        # Create credentials for _LOGGER API at the org level
         _LOGGER.info(
             f"Getting access token for account: [{target_acct}] with scope: [{scopes}]"
         )
@@ -146,7 +146,7 @@ class Client:
             with Google APIs.
         """
         if not source_credentials:
-            logging.debug("No source credentials passed, using default credentials.")
+            _LOGGER.debug("No source credentials passed, using default credentials.")
             source_credentials, project_id = default()
         src_principal = "UNK"
         try:
