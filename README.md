@@ -1,7 +1,7 @@
 # bibt-gcp-iam: BITS Blue Team Utilities: IAM Module
 
 - **Developer**: Matthew OBrien
-- **Email**: mobrien@broadinstitute.org
+- **Email**: infosec-blueteam@broadinstitute.org
 - **Project URL**: https://pypi.org/project/bibt-gcp-iam/
 - **Project Repo**: https://github.com/broadinstitute/bibt-gcp-iam
 - **Project Documentation**: https://bibt-gcp-iam.readthedocs.io/en/latest/
